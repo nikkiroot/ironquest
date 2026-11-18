@@ -463,7 +463,7 @@ const sfx={
   bell(){[880,1320].forEach((f,i)=>tone(f,.9,'sine',.07,i*.12))},
   warn(){tone(300,.18,'triangle',.07);tone(240,.25,'triangle',.07,.16)}
 };
-function hap(p){if(!S.set.haptics)return;try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+function hap(p){if(!S.set.haptics)return;try{if(window.AndroidBridge){AndroidBridge.vibrate(JSON.stringify(Array.isArray(p)?p:[p]));return}navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 
 const cv=document.getElementById('fx'),cx=cv.getContext('2d');
 let P=[],O=[],RG=[],rays={a:0,al:0,x:0,y:0,c:'200,240,49'},fxOn=false;
@@ -1202,6 +1202,7 @@ function vEx(){
 
 /* ---------- backup (installed app only: data lives only on this phone) ---------- */
 function exportData(){
+  if(window.AndroidBridge){const T=today(),m=AndroidBridge.saveFile(`ironquest-backup-${T}.json`,JSON.stringify(S));if(!/failed/i.test(m)){S.lastBackup=T;save();render()}toast(m);return}
   const T=today(),blob=new Blob([JSON.stringify(S)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`ironquest-backup-${T}.json`;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),5000);S.lastBackup=T;save();render();toast('Backup saved to your downloads');
@@ -1218,6 +1219,16 @@ function importData(f){
 }
 function doRestore(){if(!pendingRestore)return;S=migrate(pendingRestore);pendingRestore=null;L=null;try{localStorage.removeItem(DRAFT)}catch(e){}closeSheet();save();go('home');toast('Backup restored')}
 if(window.IQ_PWA&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+
+// Android back button: close a sheet, step back a screen, or return false to leave the app.
+function iqBack(){
+  if($('sheet').innerHTML){closeSheet();return true}
+  if(view==='log'){leaveLog();return true}
+  if(view==='reward'){R=null;go('home');return true}
+  const up={name:'plan',edit:'plan',lib:'edit',ex:'progress',plan:'home',progress:'home'}[view];
+  if(up){go(up);return true}
+  return false;
+}
 
 /* ---------- render ---------- */
 function render(){
