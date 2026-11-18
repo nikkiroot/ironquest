@@ -4,5 +4,7 @@ self.addEventListener('install',e=>e.waitUntil(caches.open(VERSION).then(c=>c.ad
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET'||new URL(e.request.url).origin!==location.origin)return;
-  e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(r=>r||(e.request.mode==='navigate'?caches.match('index.html'):fetch(e.request))));
+  // Only the app's own page falls back to the cached copy; other files (like the APK download) go to the network.
+  const p=new URL(e.request.url).pathname,app=/\/$|index\.html$/.test(p);
+  e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(r=>r||(e.request.mode==='navigate'&&app?caches.match('index.html'):fetch(e.request))));
 });
