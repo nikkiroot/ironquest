@@ -780,7 +780,8 @@ function setText(x,s){const k=x.k||K(x);
 function targetText(x,t,k=0){const kk=x.k||K(x);if(kk==='c')return setText(x,t.c);const r=t.reps[Math.min(k,t.reps.length-1)];return kk==='w'&&t.first?`new × ${r}`:setText({...x,k:kk},{w:t.w,r})}
 const swipeOnly=label=>`<div id="trk" role="button" tabindex="0" aria-label="${label}. Swipe right or press Enter." style="margin-top:14px"><div id="trkFill"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:var(--mut)">Swipe to ${label.toLowerCase()}</div><div id="knob">${ic('i-chev','width:26px;height:26px')}</div></div>`;
 // How a set gets logged: one big tap (Undo covers mistakes), press-and-hold, or the swipe knob.
-const LOGMODES={tap:'Tap',hold:'Press and hold',swipe:'Swipe'};
+const LOGMODES={tap:'Tap',hold:'Hold',swipe:'Swipe'};
+function setLogMode(m){S.set.logMode=m;save();render();toast(`Sets now log by: ${m==='tap'?'one tap':m==='hold'?'press and hold':'swipe'}`)}
 function swipeHtml(label){
   const m=S.set.logMode||'tap';
   if(m==='swipe')return swipeOnly(label);
@@ -1130,7 +1131,8 @@ function vProgress(){
   h+=`<div class="h2" style="margin:22px 0 10px">Settings</div><div class="stack" style="gap:6px">
     <button class="list-row" style="width:100%;text-align:left" onclick="S.set.sound=!S.set.sound;save();sfx.pop();render()">${ic('i-sound')}<span style="flex:1">Sound effects</span><span style="color:${S.set.sound?'var(--acc)':'var(--dim)'};font-weight:600">${S.set.sound?'On':'Off'}</span></button>
     <div class="list-row">${ic('i-weight')}<div style="flex:1"><div>Your bodyweight</div><div class="mut" style="font-size:12px">Used for bodyweight exercises and cardio calories</div></div><button class="ib" onclick="S.bw=Math.max(30,S.bw-1);save();sfx.tap();render()" aria-label="Decrease bodyweight">−</button><span class="num" style="min-width:48px;text-align:center;font-weight:600">${S.bw} kg</span><button class="ib" onclick="S.bw=Math.min(250,S.bw+1);save();sfx.tap();render()" aria-label="Increase bodyweight">+</button></div>
-    <button class="list-row" style="width:100%;text-align:left" onclick="const k=Object.keys(LOGMODES);S.set.logMode=k[(k.indexOf(S.set.logMode||'tap')+1)%k.length];save();render()">${ic('i-check')}<span style="flex:1">Log a set by<div class="mut" style="font-size:12px">Tap to change. Undo is there for 5 s after every set.</div></span><span style="color:var(--acc);font-weight:600">${LOGMODES[S.set.logMode||'tap']}</span></button>
+    <div class="list-row" style="flex-direction:column;align-items:stretch;gap:8px">${ic('i-check')}<div><div>Log a set by</div><div class="mut" style="font-size:12px">Undo stays on screen for 5 s after every set.</div></div>
+      <div class="row" style="gap:6px">${Object.entries(LOGMODES).map(([k,l])=>`<button class="chip ${(S.set.logMode||'tap')===k?'on':''}" style="flex:1;padding:0 6px;font-size:13px" onclick="setLogMode('${k}')">${l}</button>`).join('')}</div></div>
     <button class="list-row" style="width:100%;text-align:left" onclick="S.set.haptics=!S.set.haptics;save();hap(30);render()">${ic('i-vib')}<span style="flex:1">Vibration</span><span style="color:${S.set.haptics?'var(--acc)':'var(--dim)'};font-weight:600">${S.set.haptics?'On':'Off'}</span></button>
     ${window.IQ_PWA?`<button class="list-row" style="width:100%;text-align:left" onclick="exportData()">${ic('i-down')}<span style="flex:1">Back up data<div class="mut" style="font-size:12px">${S.lastBackup?'Last backup '+S.lastBackup:'Never backed up'} · saves a file to your phone</div></span></button>
     <label class="list-row" style="cursor:pointer">${ic('i-up')}<span style="flex:1">Restore from backup<div class="mut" style="font-size:12px">Pick a backup file</div></span><input type="file" id="restoreFile" accept=".json,application/json" hidden onchange="importData(this.files[0]);this.value=''"></label>`:''}
