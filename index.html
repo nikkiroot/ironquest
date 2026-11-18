@@ -517,7 +517,7 @@ function weekStart(T){return addDays(T,-dow(T))}
 function planFor(ds){return S.ovr&&ds in S.ovr?S.ovr[ds]:S.week[dow(ds)]}
 function missedDay(T){
   for(let i=1;i<=3;i++){const d=addDays(T,-i),w=W(planFor(d));
-    if(w&&w.ex.length&&!doneOn(d)&&S.dismiss!==d&&!S.sessions.some(s=>s.d>d))return d}
+    if(w&&w.ex.length&&!doneOn(d)&&!(S.dismiss&&d<S.dismiss)&&!S.sessions.some(s=>s.d>d))return d}
   return null;
 }
 function shiftWeek(D){
@@ -560,7 +560,7 @@ function vHome(){
   }
   if(window.IQ_PWA&&S.sessions.length&&(!S.lastBackup||S.lastBackup<addDays(T,-14)))h+=`<button class="banner" style="width:100%;background:var(--s1);margin-bottom:12px;text-align:left" onclick="exportData()">${ic('i-down')}<span style="flex:1;font-size:13px">Your data lives only on this phone. Tap to save a backup file.</span></button>`;
   const miss=done?null:missedDay(T),mw=miss&&W(planFor(miss));
-  if(mw)h+=`<div class="card stack ring" style="--rc:var(--gold);margin-bottom:12px"><div><div class="lab" style="color:var(--gold)">Missed ${DAYS[dow(miss)]}</div><div style="font-weight:600;margin-top:2px">${esc(mw.name)} didn't happen. Catch up?</div><div class="mut" style="font-size:12px;margin-top:2px">Do it today, or push the rest of this week back by ${(g=>g+' day'+(g>1?'s':''))(Math.round((new Date(T+'T12:00:00')-new Date(miss+'T12:00:00'))/864e5))} so nothing is lost.</div></div><div class="row"><button class="sec on" onclick="startWorkout('${mw.id}')">Do ${esc(mw.name)} today</button><button class="sec" onclick="shiftWeek('${miss}')">Shift my week</button></div><button style="background:none;color:var(--mut);height:36px;font-size:13px" onclick="S.dismiss='${miss}';save();render()">Not now</button></div>`;
+  if(mw)h+=`<div class="card stack ring" style="--rc:var(--gold);margin-bottom:12px"><div><div class="lab" style="color:var(--gold)">Missed ${DAYS[dow(miss)]}</div><div style="font-weight:600;margin-top:2px">${esc(mw.name)} didn't happen. Catch up?</div><div class="mut" style="font-size:12px;margin-top:2px">Do it today, or push the rest of this week back by ${(g=>g+' day'+(g>1?'s':''))(Math.round((new Date(T+'T12:00:00')-new Date(miss+'T12:00:00'))/864e5))} so nothing is lost.</div></div><div class="row"><button class="sec on" onclick="startWorkout('${mw.id}')">Do it today</button><button class="sec" onclick="shiftWeek('${miss}')">Shift my week</button></div><button style="background:none;color:var(--mut);height:36px;font-size:13px" onclick="S.dismiss='${T}';save();render()">Not now</button></div>`;
   if(w&&!done&&st>0)h+=`<div class="banner" style="background:rgba(255,178,63,.12);color:var(--gold);margin-bottom:12px">${ic('i-flame')}<span style="flex:1"><b>${st}-day streak on the line.</b> Finish today's workout to keep it.</span></div>`;
   if(w&&!done&&st===0&&S.streak.n>1)h+=`<div class="banner" style="background:var(--bad-soft);color:var(--bad);margin-bottom:12px">${ic('i-flame')}<span style="flex:1">Your ${S.streak.n}-day streak ended. Start a new one today.</span></div>`;
   const ws=weekStart(T);
